@@ -57,16 +57,16 @@
   .pressure-fill{height:100%;border-radius:2px;transition:width 1s ease;background:linear-gradient(90deg,#4a9eff,#82e0aa,#f5c842,#ff6b6b);}
   .pressure-marker{position:absolute;top:-2px;width:2px;height:7px;background:white;border-radius:1px;transition:left 1s ease;}
 
-  .forecast-row{display:flex;gap:5px;margin-top:auto;padding-top:8px;border-top:1px solid var(--glass-border);position:relative;z-index:5;overflow:hidden;}
-  .fc-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;border-radius:8px;background:rgba(0,0,0,0.28);backdrop-filter:blur(4px);border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;overflow:hidden;}
+  .forecast-row{display:flex;gap:8px;margin-top:auto;padding-top:8px;border-top:1px solid var(--glass-border);position:relative;z-index:5;overflow:hidden;}
+  .fc-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px 10px;border-radius:10px;background:rgba(0,0,0,0.32);backdrop-filter:blur(4px);border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;overflow:hidden;}
   .fc-day:active{transform:scale(0.96);background:rgba(0,0,0,0.45);}
-  .fc-day.today{border-color:var(--glass-border);background:rgba(0,0,0,0.38);}
-  .fc-name{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
-  .fc-icon{font-size:22px;line-height:1;}
-  .fc-temps{display:flex;gap:3px;align-items:baseline;}
-  .fc-hi{font-size:13px;font-weight:400;color:var(--fg);}
-  .fc-lo{font-size:10px;font-weight:300;color:var(--fg-muted);}
-  .fc-rain{font-size:8px;color:rgba(100,180,255,0.7);}
+  .fc-day.today{border-color:var(--glass-border);background:rgba(0,0,0,0.42);}
+  .fc-name{font-size:14px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
+  .fc-icon{font-size:36px;line-height:1;}
+  .fc-temps{display:flex;gap:5px;align-items:baseline;}
+  .fc-hi{font-size:20px;font-weight:500;color:var(--fg);}
+  .fc-lo{font-size:15px;font-weight:300;color:var(--fg-muted);}
+  .fc-rain{font-size:12px;color:rgba(100,180,255,0.7);}
 
   /* === LIGHTS PANEL === */
   .lights-panel{padding:12px 14px 10px;display:flex;flex-direction:column;gap:4px;background:rgba(0,0,0,0.2);border-left:1px solid var(--glass-border);overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -162,7 +162,7 @@
 
 <div class="layout">
   <div class="weather-panel">
-    <div class="version-tag">v3.6</div>
+    <div class="version-tag">v3.7</div>
     <div class="cam-stamp" id="camStamp"></div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
@@ -905,7 +905,7 @@ async function loadWeather() {
 
     // Forecast (skip past day: index 1 = today)
     const fc = document.getElementById('forecast'); fc.innerHTML = '';
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 3; i++) {
       const dt = new Date(d.time[i] + 'T12:00:00');
       const nm = i === 1 ? 'Today' : DAYS[dt.getDay()];
       const fi = wInfo(d.weather_code[i], false);
