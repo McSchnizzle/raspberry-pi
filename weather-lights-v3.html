@@ -100,7 +100,7 @@
   .preset-btn:active{background:var(--glass-hi);transform:scale(0.96);}
   .preset-btn.active{border-color:var(--accent-glow);background:rgba(245,200,66,0.06);color:var(--accent);}
   .nav-link{display:block;text-align:center;margin-top:4px;font-size:8px;color:var(--fg-muted);text-decoration:none;letter-spacing:0.08em;}
-  .version-tag{position:absolute;bottom:2px;left:6px;font-size:7px;color:rgba(255,255,255,0.12);letter-spacing:0.05em;z-index:5;pointer-events:none;}
+  .version-tag{position:absolute;bottom:3px;left:8px;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;z-index:10;pointer-events:none;}
 
   /* === OVERLAY / MODAL === */
   .overlay{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;}
@@ -156,7 +156,7 @@
 
 <div class="layout">
   <div class="weather-panel">
-    <div class="version-tag">v3.1</div>
+    <div class="version-tag">v3.3</div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
       <div class="clock-area">
@@ -206,10 +206,10 @@
         <div class="stat-value" id="uv">&mdash;</div>
         <div class="stat-sub" id="uvLabel">&nbsp;</div>
       </div>
-      <div class="stat-card" data-metric="visibility">
-        <div class="stat-label">Visibility</div>
-        <div class="stat-value"><span id="visibility">&mdash;</span></div>
-        <div class="stat-sub">miles</div>
+      <div class="stat-card" data-metric="precip">
+        <div class="stat-label">Precip</div>
+        <div class="stat-value"><span id="precip">&mdash;</span><span class="stat-unit">%</span></div>
+        <div class="stat-sub" id="precipAmt">&nbsp;</div>
       </div>
     </div>
 
@@ -293,50 +293,77 @@ function getMoonPhase(date) {
 }
 
 function drawMoon(x, y, radius, phase) {
-  // Draw moon glow
-  const glow = sctx.createRadialGradient(x, y, radius * 0.5, x, y, radius * 3);
-  glow.addColorStop(0, 'rgba(200,210,230,0.08)');
-  glow.addColorStop(1, 'rgba(200,210,230,0)');
+  // Soft outer glow
+  const glow = sctx.createRadialGradient(x, y, radius * 0.8, x, y, radius * 2.5);
+  glow.addColorStop(0, 'rgba(210,220,240,0.15)');
+  glow.addColorStop(1, 'rgba(210,220,240,0)');
   sctx.fillStyle = glow;
   sctx.beginPath();
-  sctx.arc(x, y, radius * 3, 0, Math.PI * 2);
+  sctx.arc(x, y, radius * 2.5, 0, Math.PI * 2);
   sctx.fill();
 
-  // Moon body
-  sctx.fillStyle = '#d8dce8';
+  // Moon body — soft gradient for realism
+  sctx.globalAlpha = 1;
+  const bodyGrad = sctx.createRadialGradient(x - radius * 0.2, y - radius * 0.2, 0, x, y, radius);
+  bodyGrad.addColorStop(0, '#f0f2fa');
+  bodyGrad.addColorStop(0.7, '#d8dce8');
+  bodyGrad.addColorStop(1, '#c0c6d4');
+  sctx.fillStyle = bodyGrad;
   sctx.beginPath();
   sctx.arc(x, y, radius, 0, Math.PI * 2);
   sctx.fill();
 
-  // Craters
-  sctx.fillStyle = 'rgba(140,145,160,0.3)';
-  const craters = [[0.3, -0.2, 0.15], [-0.2, 0.3, 0.1], [0.1, 0.1, 0.12], [-0.35, -0.15, 0.08], [0.25, 0.35, 0.07]];
+  // Subtle craters with soft edges
+  const craters = [[0.28, -0.22, 0.14], [-0.22, 0.28, 0.10], [0.08, 0.08, 0.11], [-0.32, -0.12, 0.07], [0.22, 0.32, 0.06], [-0.1, -0.35, 0.05]];
   craters.forEach(([cx, cy, cr]) => {
+    const cGrad = sctx.createRadialGradient(
+      x + cx * radius, y + cy * radius, 0,
+      x + cx * radius, y + cy * radius, cr * radius
+    );
+    cGrad.addColorStop(0, 'rgba(120,125,145,0.25)');
+    cGrad.addColorStop(1, 'rgba(120,125,145,0)');
+    sctx.fillStyle = cGrad;
     sctx.beginPath();
     sctx.arc(x + cx * radius, y + cy * radius, cr * radius, 0, Math.PI * 2);
     sctx.fill();
   });
 
-  // Phase shadow
+  // Phase shadow — clean pixel-by-pixel approach via off-screen technique
+  // Use two overlapping circles: moon body + shadow circle offset based on phase
   sctx.save();
   sctx.beginPath();
-  sctx.arc(x, y, radius + 1, 0, Math.PI * 2);
+  sctx.arc(x, y, radius, 0, Math.PI * 2);
   sctx.clip();
-  sctx.fillStyle = 'rgba(8,12,24,0.92)';
-  sctx.beginPath();
+
+  // Shadow is a large dark circle that slides across the moon face
+  // phase: 0=new moon(all dark), 0.25=first quarter(right half lit), 0.5=full(no shadow), 0.75=last quarter(left half lit)
+  const shadowColor = 'rgba(6,10,20,0.93)';
   const p = phase;
-  if (p < 0.5) {
-    // Waxing: shadow on left
-    const shadowX = x - radius * 2 * (0.5 - p);
-    sctx.ellipse(shadowX, y, radius * Math.abs(1 - 4 * p), radius, 0, -Math.PI / 2, Math.PI / 2, p > 0.25);
-    sctx.arc(x, y, radius, Math.PI / 2, -Math.PI / 2, false);
+  if (p < 0.01 || p > 0.99) {
+    // New moon — all shadow
+    sctx.fillStyle = shadowColor;
+    sctx.fillRect(x - radius - 2, y - radius - 2, radius * 2 + 4, radius * 2 + 4);
+  } else if (p > 0.48 && p < 0.52) {
+    // Full moon — no shadow, skip
   } else {
-    // Waning: shadow on right
-    const shadowX = x + radius * 2 * (p - 0.5);
-    sctx.ellipse(shadowX, y, radius * Math.abs(1 - 4 * (1 - p)), radius, 0, -Math.PI / 2, Math.PI / 2, p < 0.75);
-    sctx.arc(x, y, radius, -Math.PI / 2, Math.PI / 2, false);
+    // Offset a shadow circle. The further from 0.5, the more it covers.
+    // Waxing (0-0.5): shadow slides from right to left (shadow center starts far right, moves left)
+    // Waning (0.5-1): shadow slides from left to right
+    let offset;
+    if (p < 0.5) {
+      offset = radius * 2 * (1 - p * 2); // 0→2r, 0.5→0
+    } else {
+      offset = -radius * 2 * ((p - 0.5) * 2); // 0.5→0, 1→-2r
+    }
+    // Waxing: shadow on left side, circle offset to the left
+    // Waning: shadow on right side, circle offset to the right
+    const shadowCx = p < 0.5 ? x - offset : x - offset;
+    const shadowR = radius * 1.0;
+    sctx.fillStyle = shadowColor;
+    sctx.beginPath();
+    sctx.arc(shadowCx, y, shadowR, 0, Math.PI * 2);
+    sctx.fill();
   }
-  sctx.fill();
   sctx.restore();
 }
 
@@ -633,10 +660,12 @@ function renderScene() {
   }
 
   // Moon at night (drawn AFTER clouds/overlays so it's visible)
-  if (hour < 6 || hour > 20) {
-    const phase = getMoonPhase(now);
-    drawMoon(SW * 0.78, SH * 0.13, 28, phase);
-  }
+  sctx.globalAlpha = 1;
+  sctx.save();
+  const moonPhase = getMoonPhase(now);
+  drawMoon(SW * 0.82, SH * 0.22, 40, moonPhase);
+  sctx.restore();
+  sctx.globalAlpha = 1;
 
   // Lightning
   if ([95, 96, 99].includes(weatherCode) && Math.random() < 0.004) {
@@ -871,10 +900,12 @@ async function loadWeather() {
     document.getElementById('uvLabel').textContent = uvLabel(d.uv_index_max[1]);
 
     const nowHour = new Date().getHours();
-    if (w.hourly && w.hourly.visibility) {
+    if (w.hourly && w.hourly.precipitation_probability) {
       const hourIdx = 24 + nowHour; // past_days=1, so offset by 24
-      const visMi = (w.hourly.visibility[hourIdx] / 1609.34).toFixed(1);
-      document.getElementById('visibility').textContent = visMi;
+      const precipProb = w.hourly.precipitation_probability[hourIdx] || 0;
+      document.getElementById('precip').textContent = precipProb;
+      const precipAmt = w.hourly.precipitation ? w.hourly.precipitation[hourIdx] : 0;
+      document.getElementById('precipAmt').textContent = precipAmt > 0 ? `${precipAmt.toFixed(2)} in` : 'None';
     }
 
     // Forecast (skip past day: index 1 = today)
@@ -914,10 +945,9 @@ const metricConfig = {
     key: 'uv_index', title: 'UV Index', unit: '', color: 'rgb(245,200,66)',
     formatY: v => v.toFixed(1), unitLabel: ''
   },
-  visibility: {
-    key: 'visibility', title: 'Visibility', unit: 'miles', color: 'rgb(180,160,255)',
-    transform: v => v !== null ? (v / 1609.34) : null,
-    formatY: v => v.toFixed(1), unitLabel: ' mi'
+  precip: {
+    key: 'precipitation_probability', title: 'Precipitation', unit: '%', color: 'rgb(100,180,255)',
+    formatY: v => v.toFixed(0), unitLabel: '%'
   }
 };
 
