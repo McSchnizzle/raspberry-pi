@@ -57,16 +57,16 @@
   .pressure-fill{height:100%;border-radius:2px;transition:width 1s ease;background:linear-gradient(90deg,#4a9eff,#82e0aa,#f5c842,#ff6b6b);}
   .pressure-marker{position:absolute;top:-2px;width:2px;height:7px;background:white;border-radius:1px;transition:left 1s ease;}
 
-  .forecast-row{display:flex;gap:4px;margin-top:auto;padding-top:8px;border-top:1px solid var(--glass-border);position:relative;z-index:5;}
-  .fc-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 0 3px;border-radius:8px;background:rgba(0,0,0,0.28);backdrop-filter:blur(4px);border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;}
+  .forecast-row{display:flex;gap:5px;margin-top:auto;padding-top:8px;border-top:1px solid var(--glass-border);position:relative;z-index:5;overflow:hidden;}
+  .fc-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 6px;border-radius:8px;background:rgba(0,0,0,0.28);backdrop-filter:blur(4px);border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.15s;overflow:hidden;}
   .fc-day:active{transform:scale(0.96);background:rgba(0,0,0,0.45);}
   .fc-day.today{border-color:var(--glass-border);background:rgba(0,0,0,0.38);}
-  .fc-name{font-size:8px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
-  .fc-icon{font-size:15px;line-height:1;}
+  .fc-name{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
+  .fc-icon{font-size:22px;line-height:1;}
   .fc-temps{display:flex;gap:3px;align-items:baseline;}
-  .fc-hi{font-size:11px;font-weight:400;color:var(--fg);}
-  .fc-lo{font-size:9px;font-weight:300;color:var(--fg-muted);}
-  .fc-rain{font-size:7px;color:rgba(100,180,255,0.7);}
+  .fc-hi{font-size:13px;font-weight:400;color:var(--fg);}
+  .fc-lo{font-size:10px;font-weight:300;color:var(--fg-muted);}
+  .fc-rain{font-size:8px;color:rgba(100,180,255,0.7);}
 
   /* === LIGHTS PANEL === */
   .lights-panel{padding:12px 14px 10px;display:flex;flex-direction:column;gap:4px;background:rgba(0,0,0,0.2);border-left:1px solid var(--glass-border);overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -103,7 +103,7 @@
   .preset-btn.active{border-color:var(--accent-glow);background:rgba(245,200,66,0.06);color:var(--accent);}
   .nav-link{display:block;text-align:center;margin-top:4px;font-size:8px;color:var(--fg-muted);text-decoration:none;letter-spacing:0.08em;}
   .version-tag{position:absolute;bottom:3px;left:8px;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;z-index:10;pointer-events:none;}
-  .cam-stamp{position:absolute;bottom:3px;right:270px;font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.04em;z-index:10;pointer-events:none;}
+  .cam-stamp{position:absolute;bottom:3px;left:50px;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;z-index:10;pointer-events:none;}
 
   /* === OVERLAY / MODAL === */
   .overlay{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;}
@@ -162,7 +162,7 @@
 
 <div class="layout">
   <div class="weather-panel">
-    <div class="version-tag">v3.5</div>
+    <div class="version-tag">v3.6</div>
     <div class="cam-stamp" id="camStamp"></div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
@@ -830,7 +830,8 @@ function drawChart(canvas, data, opts) {
 }
 
 /* ===== WEATHER DATA ===== */
-const WMO = {0:{t:'Clear Sky',i:'\u2600\uFE0F',n:'\uD83C\uDF19'},1:{t:'Mostly Clear',i:'\uD83C\uDF24\uFE0F',n:'\uD83C\uDF19'},2:{t:'Partly Cloudy',i:'\u26C5',n:'\u2601\uFE0F'},3:{t:'Overcast',i:'\u2601\uFE0F',n:'\u2601\uFE0F'},45:{t:'Foggy',i:'\uD83C\uDF2B\uFE0F',n:'\uD83C\uDF2B\uFE0F'},48:{t:'Rime Fog',i:'\uD83C\uDF2B\uFE0F',n:'\uD83C\uDF2B\uFE0F'},51:{t:'Light Drizzle',i:'\uD83C\uDF26\uFE0F',n:'\uD83C\uDF27\uFE0F'},53:{t:'Drizzle',i:'\uD83C\uDF26\uFE0F',n:'\uD83C\uDF27\uFE0F'},55:{t:'Heavy Drizzle',i:'\uD83C\uDF27\uFE0F',n:'\uD83C\uDF27\uFE0F'},61:{t:'Light Rain',i:'\uD83C\uDF26\uFE0F',n:'\uD83C\uDF27\uFE0F'},63:{t:'Rain',i:'\uD83C\uDF27\uFE0F',n:'\uD83C\uDF27\uFE0F'},65:{t:'Heavy Rain',i:'\uD83C\uDF27\uFE0F',n:'\uD83C\uDF27\uFE0F'},66:{t:'Freezing Rain',i:'\uD83E\uDDCA',n:'\uD83E\uDDCA'},67:{t:'Hvy Freezing Rain',i:'\uD83E\uDDCA',n:'\uD83E\uDDCA'},71:{t:'Light Snow',i:'\uD83C\uDF28\uFE0F',n:'\uD83C\uDF28\uFE0F'},73:{t:'Snow',i:'\u2744\uFE0F',n:'\u2744\uFE0F'},75:{t:'Heavy Snow',i:'\u2744\uFE0F',n:'\u2744\uFE0F'},77:{t:'Snow Grains',i:'\uD83C\uDF28\uFE0F',n:'\uD83C\uDF28\uFE0F'},80:{t:'Light Showers',i:'\uD83C\uDF26\uFE0F',n:'\uD83C\uDF27\uFE0F'},81:{t:'Showers',i:'\uD83C\uDF27\uFE0F',n:'\uD83C\uDF27\uFE0F'},82:{t:'Heavy Showers',i:'\u26C8\uFE0F',n:'\u26C8\uFE0F'},85:{t:'Snow Showers',i:'\uD83C\uDF28\uFE0F',n:'\uD83C\uDF28\uFE0F'},86:{t:'Hvy Snow Showers',i:'\u2744\uFE0F',n:'\u2744\uFE0F'},95:{t:'Thunderstorm',i:'\u26C8\uFE0F',n:'\u26C8\uFE0F'},96:{t:'T-storm + Hail',i:'\u26C8\uFE0F',n:'\u26C8\uFE0F'},99:{t:'Severe T-storm',i:'\u26C8\uFE0F',n:'\u26C8\uFE0F'}};
+// Using basic unicode that renders on Pi's Chromium (no emoji fonts needed)
+const WMO = {0:{t:'Clear Sky',i:'\u2600',n:'\u263E'},1:{t:'Mostly Clear',i:'\u2600',n:'\u263E'},2:{t:'Partly Cloudy',i:'\u26C5',n:'\u2601'},3:{t:'Overcast',i:'\u2601',n:'\u2601'},45:{t:'Foggy',i:'\u2588',n:'\u2588'},48:{t:'Rime Fog',i:'\u2588',n:'\u2588'},51:{t:'Light Drizzle',i:'\u2602',n:'\u2602'},53:{t:'Drizzle',i:'\u2602',n:'\u2602'},55:{t:'Heavy Drizzle',i:'\u2602',n:'\u2602'},61:{t:'Light Rain',i:'\u2602',n:'\u2602'},63:{t:'Rain',i:'\u2602',n:'\u2602'},65:{t:'Heavy Rain',i:'\u2602',n:'\u2602'},66:{t:'Freezing Rain',i:'\u2744',n:'\u2744'},67:{t:'Hvy Freezing Rain',i:'\u2744',n:'\u2744'},71:{t:'Light Snow',i:'\u2744',n:'\u2744'},73:{t:'Snow',i:'\u2744',n:'\u2744'},75:{t:'Heavy Snow',i:'\u2744',n:'\u2744'},77:{t:'Snow Grains',i:'\u2744',n:'\u2744'},80:{t:'Light Showers',i:'\u2602',n:'\u2602'},81:{t:'Showers',i:'\u2602',n:'\u2602'},82:{t:'Heavy Showers',i:'\u2608',n:'\u2608'},85:{t:'Snow Showers',i:'\u2744',n:'\u2744'},86:{t:'Hvy Snow Showers',i:'\u2744',n:'\u2744'},95:{t:'Thunderstorm',i:'\u2608',n:'\u2608'},96:{t:'T-storm + Hail',i:'\u2608',n:'\u2608'},99:{t:'Severe T-storm',i:'\u2608',n:'\u2608'}};
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DIR_NAMES = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
@@ -911,7 +912,7 @@ async function loadWeather() {
       const rain = d.precipitation_probability_max ? d.precipitation_probability_max[i] : null;
       const div = document.createElement('div');
       div.className = 'fc-day' + (i === 1 ? ' today' : '');
-      div.innerHTML = `<span class="fc-name">${nm}</span><span class="fc-icon">${fi.icon}</span><div class="fc-temps"><span class="fc-hi">${Math.round(d.temperature_2m_max[i])}\u00B0</span><span class="fc-lo">${Math.round(d.temperature_2m_min[i])}\u00B0</span></div>${rain != null ? `<span class="fc-rain">\uD83D\uDCA7${rain}%</span>` : ''}`;
+      div.innerHTML = `<span class="fc-name">${nm}</span><span class="fc-icon">${fi.icon}</span><div class="fc-temps"><span class="fc-hi">${Math.round(d.temperature_2m_max[i])}\u00B0</span><span class="fc-lo">${Math.round(d.temperature_2m_min[i])}\u00B0</span></div>${rain != null && rain > 0 ? `<span class="fc-rain">${rain}%</span>` : ''}`;
       div.addEventListener('click', () => showForecastDetail(i));
       fc.appendChild(div);
     }
