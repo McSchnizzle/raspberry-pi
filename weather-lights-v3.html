@@ -14,7 +14,9 @@
   html,body{width:800px;height:480px;overflow:hidden;font-family:-apple-system,'Segoe UI','Helvetica Neue',sans-serif;color:var(--fg);-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;}
   body{background:#0a101c;position:relative;}
 
-  #sceneCanvas{position:absolute;top:0;left:0;width:540px;height:480px;z-index:0;pointer-events:none;}
+  #webcamBg{position:absolute;top:0;left:0;width:540px;height:480px;z-index:0;overflow:hidden;pointer-events:none;background:#0a101c;}
+  #webcamBg img{width:100%;height:100%;object-fit:cover;opacity:0.4;filter:brightness(0.55) saturate(0.7);}
+  #sceneCanvas{position:absolute;top:0;left:0;width:540px;height:480px;z-index:1;pointer-events:none;}
 
   body::after{content:'';position:fixed;inset:0;opacity:0.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:200;}
 
@@ -126,6 +128,9 @@
 </head>
 <body>
 
+<div id="webcamBg">
+  <img id="webcamImg" src="" alt="" crossorigin="anonymous">
+</div>
 <canvas id="sceneCanvas" width="1080" height="960"></canvas>
 
 <div class="overlay" id="statOverlay">
@@ -156,7 +161,7 @@
 
 <div class="layout">
   <div class="weather-panel">
-    <div class="version-tag">v3.3</div>
+    <div class="version-tag">v3.4</div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
       <div class="clock-area">
@@ -614,8 +619,12 @@ function renderScene() {
     g.addColorStop(0, '#050a16'); g.addColorStop(0.4, '#0c1228'); g.addColorStop(1, '#0a0f1e');
   }
 
+  // Clear canvas fully transparent first so webcam shows through
+  sctx.clearRect(0, 0, SW, SH);
+  sctx.globalAlpha = 0.55;
   sctx.fillStyle = g;
   sctx.fillRect(0, 0, SW, SH);
+  sctx.globalAlpha = 1;
 
   // Sunrise/sunset glow on horizon
   if (hour > 5.5 && hour < 8) {
@@ -1218,10 +1227,22 @@ async function loadLights() {
   }
 }
 
+/* ===== WEBCAM BACKGROUND ===== */
+function refreshWebcam() {
+  const img = document.getElementById('webcamImg');
+  // YouTube live stream thumbnail - updates with the live feed
+  img.src = 'https://img.youtube.com/vi/IFfE7Ex3NgA/maxresdefault_live.jpg?' + Date.now();
+  img.onerror = function() {
+    // Fallback to standard thumbnail if live version unavailable
+    this.src = 'https://img.youtube.com/vi/IFfE7Ex3NgA/maxresdefault.jpg?' + Date.now();
+  };
+}
+
 /* ===== INIT ===== */
 updateClock(); setInterval(updateClock, 1000);
 loadWeather(); setInterval(loadWeather, 15 * 60 * 1000);
 loadLights(); loadPresets(); setInterval(loadLights, 30000);
+refreshWebcam(); setInterval(refreshWebcam, 5 * 60 * 1000); // refresh every 5 min
 renderScene();
 </script>
 </body>
