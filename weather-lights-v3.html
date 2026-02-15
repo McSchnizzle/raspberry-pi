@@ -100,6 +100,7 @@
   .preset-btn:active{background:var(--glass-hi);transform:scale(0.96);}
   .preset-btn.active{border-color:var(--accent-glow);background:rgba(245,200,66,0.06);color:var(--accent);}
   .nav-link{display:block;text-align:center;margin-top:4px;font-size:8px;color:var(--fg-muted);text-decoration:none;letter-spacing:0.08em;}
+  .version-tag{position:absolute;bottom:2px;left:6px;font-size:7px;color:rgba(255,255,255,0.12);letter-spacing:0.05em;z-index:5;pointer-events:none;}
 
   /* === OVERLAY / MODAL === */
   .overlay{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;}
@@ -155,6 +156,7 @@
 
 <div class="layout">
   <div class="weather-panel">
+    <div class="version-tag">v3.1</div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
       <div class="clock-area">
@@ -611,12 +613,6 @@ function renderScene() {
   // Stars
   drawStars(hour);
 
-  // Moon at night
-  if (hour < 6 || hour > 20) {
-    const phase = getMoonPhase(now);
-    drawMoon(SW * 0.2, SH * 0.15, 28, phase);
-  }
-
   // Cloud overlay
   const cloudCodes = { 2: 0.4, 3: 0.8, 45: 0.6, 48: 0.7 };
   drawClouds(cloudCodes[weatherCode] || 0, hour);
@@ -634,6 +630,12 @@ function renderScene() {
   if ([3].includes(weatherCode)) {
     sctx.fillStyle = 'rgba(30,35,50,0.2)';
     sctx.fillRect(0, 0, SW, SH);
+  }
+
+  // Moon at night (drawn AFTER clouds/overlays so it's visible)
+  if (hour < 6 || hour > 20) {
+    const phase = getMoonPhase(now);
+    drawMoon(SW * 0.78, SH * 0.13, 28, phase);
   }
 
   // Lightning
