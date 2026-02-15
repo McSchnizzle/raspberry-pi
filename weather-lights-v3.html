@@ -15,7 +15,7 @@
   body{background:#0a101c;position:relative;}
 
   #webcamBg{position:absolute;top:0;left:0;width:540px;height:480px;z-index:0;overflow:hidden;pointer-events:none;background:#0a101c;}
-  #webcamBg img{width:100%;height:100%;object-fit:cover;opacity:0.4;filter:brightness(0.55) saturate(0.7);}
+  #webcamBg img{width:100%;height:100%;object-fit:cover;opacity:0.75;filter:brightness(0.7) saturate(0.85);}
   #sceneCanvas{position:absolute;top:0;left:0;width:540px;height:480px;z-index:1;pointer-events:none;}
 
   body::after{content:'';position:fixed;inset:0;opacity:0.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:200;}
@@ -103,6 +103,7 @@
   .preset-btn.active{border-color:var(--accent-glow);background:rgba(245,200,66,0.06);color:var(--accent);}
   .nav-link{display:block;text-align:center;margin-top:4px;font-size:8px;color:var(--fg-muted);text-decoration:none;letter-spacing:0.08em;}
   .version-tag{position:absolute;bottom:3px;left:8px;font-size:8px;color:rgba(255,255,255,0.35);letter-spacing:0.06em;z-index:10;pointer-events:none;}
+  .cam-stamp{position:absolute;bottom:3px;right:270px;font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.04em;z-index:10;pointer-events:none;}
 
   /* === OVERLAY / MODAL === */
   .overlay{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;}
@@ -161,7 +162,8 @@
 
 <div class="layout">
   <div class="weather-panel">
-    <div class="version-tag">v3.4</div>
+    <div class="version-tag">v3.5</div>
+    <div class="cam-stamp" id="camStamp"></div>
     <div class="weather-top">
       <div class="location" id="location">Portland, OR</div>
       <div class="clock-area">
@@ -619,9 +621,9 @@ function renderScene() {
     g.addColorStop(0, '#050a16'); g.addColorStop(0.4, '#0c1228'); g.addColorStop(1, '#0a0f1e');
   }
 
-  // Clear canvas fully transparent first so webcam shows through
+  // Clear canvas fully transparent first so webcam photo shows through
   sctx.clearRect(0, 0, SW, SH);
-  sctx.globalAlpha = 0.55;
+  sctx.globalAlpha = 0.35;
   sctx.fillStyle = g;
   sctx.fillRect(0, 0, SW, SH);
   sctx.globalAlpha = 1;
@@ -649,24 +651,7 @@ function renderScene() {
   // Stars
   drawStars(hour);
 
-  // Cloud overlay
-  const cloudCodes = { 2: 0.4, 3: 0.8, 45: 0.6, 48: 0.7 };
-  drawClouds(cloudCodes[weatherCode] || 0, hour);
-
-  // Mt Hood
-  drawMtHood(hour);
-
-  // Cityscape
-  drawCityscape(hour);
-
-  // Fog
-  if ([45, 48].includes(weatherCode)) drawFog(1);
-
-  // Overcast darkening
-  if ([3].includes(weatherCode)) {
-    sctx.fillStyle = 'rgba(30,35,50,0.2)';
-    sctx.fillRect(0, 0, SW, SH);
-  }
+  // No generated cityscape/mountains — real webcam photo shows through
 
   // Moon at night (drawn AFTER clouds/overlays so it's visible)
   sctx.globalAlpha = 1;
@@ -1230,10 +1215,17 @@ async function loadLights() {
 /* ===== WEBCAM BACKGROUND ===== */
 function refreshWebcam() {
   const img = document.getElementById('webcamImg');
+  const stamp = document.getElementById('camStamp');
   // YouTube live stream thumbnail - updates with the live feed
   img.src = 'https://img.youtube.com/vi/IFfE7Ex3NgA/maxresdefault_live.jpg?' + Date.now();
+  img.onload = function() {
+    const now = new Date();
+    const h = now.getHours() % 12 || 12;
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const ap = now.getHours() >= 12 ? 'PM' : 'AM';
+    stamp.textContent = `cam ${h}:${m} ${ap}`;
+  };
   img.onerror = function() {
-    // Fallback to standard thumbnail if live version unavailable
     this.src = 'https://img.youtube.com/vi/IFfE7Ex3NgA/maxresdefault.jpg?' + Date.now();
   };
 }
