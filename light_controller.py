@@ -11,6 +11,9 @@ import colorsys
 import json
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- Lutron Caseta ---
 from pylutron_caseta.smartbridge import Smartbridge
@@ -38,17 +41,17 @@ LIGHTS = {
     "kitchen_left": {
         "name": "Left Kitchen Cabinet",
         "system": "tuya",
-        "device_id": "REDACTED_TUYA_LEFT_ID",
-        "local_key": "REDACTED_TUYA_LEFT_KEY",
-        "ip": "192.168.1.101",
+        "device_id": os.environ.get("TUYA_KITCHEN_LEFT_ID", "REDACTED_TUYA_LEFT_ID"),
+        "local_key": os.environ.get("TUYA_KITCHEN_LEFT_KEY", "REDACTED_TUYA_LEFT_KEY"),
+        "ip": os.environ.get("TUYA_KITCHEN_LEFT_IP", "192.168.1.101"),
         "has_color": True,
     },
     "kitchen_right": {
         "name": "Right Kitchen Cabinet",
         "system": "tuya",
-        "device_id": "REDACTED_TUYA_RIGHT_ID",
-        "local_key": "REDACTED_TUYA_RIGHT_KEY",
-        "ip": "192.168.1.110",
+        "device_id": os.environ.get("TUYA_KITCHEN_RIGHT_ID", "REDACTED_TUYA_RIGHT_ID"),
+        "local_key": os.environ.get("TUYA_KITCHEN_RIGHT_KEY", "REDACTED_TUYA_RIGHT_KEY"),
+        "ip": os.environ.get("TUYA_KITCHEN_RIGHT_IP", "192.168.1.110"),
         "has_color": True,
     },
 }

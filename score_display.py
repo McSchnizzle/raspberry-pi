@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-NCAAM Score Alert Display — Runs on Touchscreen Pi (192.168.1.175)
+Weather Dashboard + Smart Home — Runs on Touchscreen Pi (192.168.1.175)
 
-Flask app that receives score alerts from the Pi 400 tracker and serves
-a full-screen display page with animated pop-up alert cards.
+Flask app serving weather dashboard with light controls, sports scores,
+and weather station integration.
 
 Endpoints:
-  POST /score-update   — Receive alert from Pi 400
-  GET  /               — Serve the display page
-  GET  /updates        — Return recent alerts as JSON (polled by frontend)
-  POST /test-alert     — Send a fake alert for testing
+  GET  /               — Light control panel
+  GET  /weather        — Weather dashboard (main kiosk page)
+  GET  /lights         — JSON status of all Caseta/Tuya lights
+  POST /lights/<id>    — Control Caseta/Tuya light brightness
+  GET  /hubspace       — JSON status of all Hubspace lights
+  POST /hubspace/<id>  — Control Hubspace light (brightness, color, effects)
   GET  /api/sports     — ESPN scores proxy (cached 60s)
+  GET  /api/station    — WS-2902 weather station data (Ambient Weather API)
   POST /api/display    — Screen on/off via wlopm
 
 Usage:
@@ -20,11 +23,16 @@ Usage:
 from flask import Flask, request, jsonify, render_template, Response
 from datetime import datetime
 from collections import deque
+from dotenv import load_dotenv
 import light_controller
+import hubspace_controller
 import subprocess
 import time
 import urllib.request
 import json
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -331,6 +339,54 @@ def preset_apply(preset_id):
     return jsonify(result)
 
 
+# --- Hubspace lights ---
+
+@app.route("/hubspace")
+def hubspace_status():
+    """Get status of all Hubspace lights."""
+    return jsonify(hubspace_controller.get_all_status())
+
+
+@app.route("/hubspace/devices")
+def hubspace_devices():
+    """List all discovered Hubspace devices."""
+    return jsonify(hubspace_controller.get_devices())
+
+
+@app.route("/hubspace/<device_id>", methods=["POST"])
+def hubspace_control(device_id):
+    """Control a Hubspace light. JSON body: {"brightness": 0-100} or {"on": true/false}"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Need JSON body"}), 400
+
+    if "brightness" in data:
+        result = hubspace_controller.set_brightness(device_id, int(data["brightness"]))
+    elif "on" in data:
+        result = hubspace_controller.turn_on(device_id) if data["on"] else hubspace_controller.turn_off(device_id)
+    elif "effect" in data:
+        result = hubspace_controller.set_effect(device_id, data["effect"])
+    elif "color_temp" in data:
+        result = hubspace_controller.set_color_temp(device_id, int(data["color_temp"]))
+    else:
+        return jsonify({"error": "Need brightness, on, effect, or color_temp"}), 400
+
+    return jsonify(result) if isinstance(result, dict) else jsonify({"ok": True})
+
+
+@app.route("/hubspace/<device_id>/color", methods=["POST"])
+def hubspace_color(device_id):
+    """Set Hubspace light color. JSON body: {"r": 0-255, "g": 0-255, "b": 0-255}"""
+    data = request.get_json()
+    if not data or "r" not in data:
+        return jsonify({"error": "Need r, g, b values 0-255"}), 400
+    r = max(0, min(255, int(data["r"])))
+    g = max(0, min(255, int(data["g"])))
+    b = max(0, min(255, int(data["b"])))
+    result = hubspace_controller.set_color(device_id, r, g, b)
+    return jsonify(result) if isinstance(result, dict) else jsonify({"ok": True})
+
+
 @app.route("/api/sports")
 def api_sports():
     """ESPN scores proxy. Returns prioritized games list, cached 60s."""
@@ -406,9 +462,9 @@ def api_webcam():
 
 
 # Ambient Weather API (cloud) — fetches WS-2902 data
-_AW_API_KEY = "REDACTED_AW_API_KEY"
-_AW_APP_KEY = "REDACTED_AW_APP_KEY"
-_AW_MAC = "C8:C9:A3:16:AA:F9"
+_AW_API_KEY = os.environ.get("AW_API_KEY", "")
+_AW_APP_KEY = os.environ.get("AW_APP_KEY", "")
+_AW_MAC = os.environ.get("AW_MAC", "C8:C9:A3:16:AA:F9")
 _station_cache = {"data": None, "ts": 0}
 _STATION_CACHE_TTL = 60  # seconds
 
@@ -507,10 +563,16 @@ def _safe_int(v):
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("  Score Alert Display + Weather Dashboard")
+    print("  Weather Dashboard + Light Controls")
     print("  Listening on http://0.0.0.0:5000")
-    print("  GET /api/station    — WS-2902 data (Ambient Weather API)")
+    print("  GET  /api/station   — WS-2902 data (Ambient Weather API)")
+    print("  GET  /hubspace      — Hubspace light status")
+    print("  POST /hubspace/<id> — Hubspace light control")
     if not _AW_APP_KEY:
-        print("  ⚠ Set _AW_APP_KEY in score_display.py for Ambient Weather!")
+        print("  ⚠ Set AW_APP_KEY in .env for Ambient Weather!")
     print("=" * 50)
+
+    # Start Hubspace bridge in background thread
+    hubspace_controller.start()
+
     app.run(host="0.0.0.0", port=5000, debug=False)
