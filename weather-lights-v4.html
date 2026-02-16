@@ -125,11 +125,11 @@
   .sports-header{font-size:8px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:1px;}
   .game-card{display:flex;flex-direction:column;gap:2px;padding:5px 7px;border-radius:7px;background:rgba(0,0,0,0.30);border:1px solid var(--glass-border);}
   .game-card.live{border-color:rgba(255,60,60,0.3);background:rgba(255,60,60,0.04);}
-  .game-league{font-size:7px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
+  .game-league{font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg-muted);}
   .game-row{display:flex;justify-content:space-between;align-items:center;}
-  .game-team{font-size:11px;font-weight:600;color:var(--fg-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:145px;}
-  .game-score{font-size:13px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums;min-width:24px;text-align:right;}
-  .game-status{font-size:8px;color:var(--fg-muted);text-align:center;margin-top:1px;}
+  .game-team{font-size:14px;font-weight:600;color:var(--fg-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;}
+  .game-score{font-size:17px;font-weight:700;color:var(--fg);font-variant-numeric:tabular-nums;min-width:28px;text-align:right;}
+  .game-status{font-size:10px;color:var(--fg-muted);text-align:center;margin-top:1px;}
   .game-status.live-text{color:rgba(255,80,80,0.9);font-weight:600;}
   .game-card{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.15s;}
   .game-card:active{background:rgba(255,255,255,0.06);}
@@ -347,6 +347,7 @@
       <button class="layout-tab" data-view="2">Cockpit</button>
       <button class="layout-tab" data-view="3">Horizon</button>
       <button class="layout-tab" data-view="4">Grid</button>
+      <button class="layout-tab" id="refresh-btn" style="margin-left:auto;" onclick="location.reload()">Refresh</button>
     </div>
 
     <div class="weather-view active" id="view1">
@@ -1086,11 +1087,9 @@ const COLOR_SWATCHES = [
   { name: 'Cool', r: 200, g: 220, b: 255, css: '#c8dcff' },
   { name: 'Red', r: 255, g: 30, b: 30, css: '#ff1e1e' },
   { name: 'Orange', r: 255, g: 120, b: 0, css: '#ff7800' },
-  { name: 'Amber', r: 255, g: 191, b: 0, css: '#ffbf00' },
   { name: 'Green', r: 0, g: 200, b: 80, css: '#00c850' },
   { name: 'Blue', r: 0, g: 100, b: 255, css: '#0064ff' },
   { name: 'Purple', r: 150, g: 50, b: 255, css: '#9632ff' },
-  { name: 'Pink', r: 255, g: 80, b: 180, css: '#ff50b4' },
 ];
 
 function buildLights(data) {
@@ -1563,6 +1562,7 @@ refreshWebcam(); setInterval(refreshWebcam, 5 * 60 * 1000);
 setInterval(rotateCamSource, 60 * 60 * 1000); // rotate cam source hourly
 loadSports(); setInterval(loadSports, 60 * 1000); // poll sports every 60s
 setInterval(rotateLayout, 60 * 60 * 1000); // rotate layout every hour
+setInterval(autoRotateView, 15 * 60 * 1000); // rotate weather view every 15 min
 checkScreenSchedule(); setInterval(checkScreenSchedule, 60 * 1000); // check every minute
 renderScene();
 </script>
